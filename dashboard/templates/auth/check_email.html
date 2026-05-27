@@ -1,0 +1,19 @@
+{% extends "auth/base.html" %}
+{% block title %}Posted{% endblock %}
+{% block content %}
+  <header class="dept-bar">
+    <span>Vol. I &middot; Subscription Dept.</span>
+    <span class="right">a notice to the reader</span>
+  </header>
+  <hr class="rule-double">
+
+  <p class="folio">⁂</p>
+  <h1 class="broadsheet-title">Posted<span class="stop">.</span></h1>
+  <p class="dek">{{ message or "We've sent a link to your inbox. Click it to continue." }}</p>
+
+  <div class="ornament solo">❦</div>
+
+  <nav class="tertiary">
+    <a href="/">Back to the broadsheet</a>
+  </nav>
+{% endblock %}

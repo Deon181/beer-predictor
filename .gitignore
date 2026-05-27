@@ -1,0 +1,26 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Env files
+.env
+.env.local
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Caches
+.pytest_cache/
+.ruff_cache/
+
+# Data (raw kept locally; processed regenerable)
+data/raw/*.json
+data/raw/*.zip
+*.DS_Store

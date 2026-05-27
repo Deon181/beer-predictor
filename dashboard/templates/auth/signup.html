@@ -1,0 +1,60 @@
+{% extends "auth/base.html" %}
+{% block title %}Subscribe{% endblock %}
+{% block content %}
+  <header class="dept-bar">
+    <span>Vol. I &middot; Subscription Dept.</span>
+    <span class="right">№ i &middot; the reader's card</span>
+  </header>
+  <hr class="rule-double">
+
+  <p class="folio">№&nbsp;i.</p>
+  <h1 class="broadsheet-title">Subscribe<span class="stop">.</span></h1>
+  <p class="dek">A reader's card for The Beer Predictor — seven sliders, an honest catalogue, and the patience to read a chart.</p>
+
+  <form method="post" action="{{ url_for('auth.signup') }}" class="fields" novalidate>
+    <div class="field">
+      <div class="field-meta">
+        <label for="display_name">Display name</label>
+        <span class="field-hint">on your card</span>
+      </div>
+      <input id="display_name" name="display_name" type="text" required
+             maxlength="50" autocomplete="nickname"
+             placeholder="how you'd like to be addressed"
+             value="{{ request.form.get('display_name', '') }}">
+    </div>
+
+    <div class="field">
+      <div class="field-meta">
+        <label for="email">Email</label>
+        <span class="field-hint">where we'll write</span>
+      </div>
+      <input id="email" name="email" type="email" required
+             autocomplete="email"
+             placeholder="your.name@elsewhere"
+             value="{{ request.form.get('email', '') }}">
+    </div>
+
+    <div class="field">
+      <div class="field-meta">
+        <label for="password">Passphrase</label>
+        <span class="field-hint">at least eight</span>
+      </div>
+      <input id="password" name="password" type="password" required
+             minlength="8" autocomplete="new-password"
+             placeholder="a word that's all your own">
+    </div>
+
+    <div class="ornament">✦ &nbsp;·&nbsp; ✦ &nbsp;·&nbsp; ✦</div>
+
+    <div>
+      <button type="submit" class="primary-action">
+        Post <span class="arrow">→</span>
+      </button>
+    </div>
+  </form>
+
+  <nav class="tertiary">
+    <span>Already subscribed?</span>
+    <a href="{{ url_for('auth.login') }}">Return</a>
+  </nav>
+{% endblock %}

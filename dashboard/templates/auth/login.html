@@ -1,0 +1,49 @@
+{% extends "auth/base.html" %}
+{% block title %}Return{% endblock %}
+{% block content %}
+  <header class="dept-bar">
+    <span>Vol. I &middot; Subscription Dept.</span>
+    <span class="right">№ ii &middot; returning reader</span>
+  </header>
+  <hr class="rule-double">
+
+  <p class="folio">№&nbsp;ii.</p>
+  <h1 class="broadsheet-title">Return<span class="stop">.</span></h1>
+  <p class="dek">Welcome back to the broadsheet. Present your card.</p>
+
+  <form method="post" action="{{ url_for('auth.login') }}" class="fields" novalidate>
+    <div class="field">
+      <div class="field-meta">
+        <label for="email">Email</label>
+        <span class="field-hint">where we wrote</span>
+      </div>
+      <input id="email" name="email" type="email" required
+             autocomplete="email"
+             placeholder="your.name@elsewhere"
+             value="{{ request.form.get('email', '') }}">
+    </div>
+
+    <div class="field">
+      <div class="field-meta">
+        <label for="password">Passphrase</label>
+        <span class="field-hint">all your own</span>
+      </div>
+      <input id="password" name="password" type="password" required
+             autocomplete="current-password"
+             placeholder="•••••••••">
+    </div>
+
+    <div class="ornament">✦ &nbsp;·&nbsp; ✦ &nbsp;·&nbsp; ✦</div>
+
+    <div>
+      <button type="submit" class="primary-action">
+        Enter <span class="arrow">→</span>
+      </button>
+    </div>
+  </form>
+
+  <nav class="tertiary">
+    <a href="{{ url_for('auth.signup') }}">New reader?</a>
+    <a href="{{ url_for('auth.forgot') }}">Forgotten?</a>
+  </nav>
+{% endblock %}

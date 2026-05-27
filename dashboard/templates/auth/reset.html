@@ -1,0 +1,33 @@
+{% extends "auth/base.html" %}
+{% block title %}A new word{% endblock %}
+{% block content %}
+  <header class="dept-bar">
+    <span>Vol. I &middot; Subscription Dept.</span>
+    <span class="right">№ iv &middot; new passphrase</span>
+  </header>
+  <hr class="rule-double">
+
+  <p class="folio">№&nbsp;iv.</p>
+  <h1 class="broadsheet-title">A new word<span class="stop">.</span></h1>
+  <p class="dek">Set the passphrase that admits you.</p>
+
+  <form method="post" action="{{ url_for('auth.reset') }}" class="fields" novalidate>
+    <div class="field">
+      <div class="field-meta">
+        <label for="password">Passphrase</label>
+        <span class="field-hint">at least eight</span>
+      </div>
+      <input id="password" name="password" type="password" required
+             minlength="8" autocomplete="new-password"
+             placeholder="a fresh word, all your own">
+    </div>
+
+    <div class="ornament">✦ &nbsp;·&nbsp; ✦ &nbsp;·&nbsp; ✦</div>
+
+    <div>
+      <button type="submit" class="primary-action">
+        Set <span class="arrow">→</span>
+      </button>
+    </div>
+  </form>
+{% endblock %}
