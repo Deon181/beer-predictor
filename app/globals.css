@@ -1380,6 +1380,7 @@ input[type="range"]:focus::-moz-range-thumb {
     padding: 0.3rem 0;
     outline: none;
     transition: border-color 0.2s ease;
+    min-height: 44px;
 }
 .auth-field input:focus {
     border-bottom-color: var(--color-copper);
@@ -1394,6 +1395,8 @@ input[type="range"]:focus::-moz-range-thumb {
 .auth-links a {
     color: var(--color-ink-soft);
     text-decoration: none;
+    display: inline-block;
+    padding: 0.4rem 0;
     border-bottom: 1px solid transparent;
     transition: color 0.15s ease, border-color 0.15s ease;
 }
