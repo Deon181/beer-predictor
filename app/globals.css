@@ -591,8 +591,10 @@ input[type="range"]:focus::-moz-range-thumb {
     text-transform: uppercase;
 }
 .sms__list {
-    max-height: 180px;
+    max-height: 220px;
     overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
 }
 .sms__list::-webkit-scrollbar { width: 6px; }
 .sms__list::-webkit-scrollbar-thumb {
