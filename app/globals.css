@@ -221,7 +221,7 @@ body::after {
     color: var(--color-ink-soft);
     background: transparent;
     border: 0;
-    padding: 2px 0 3px 0;
+    padding: 0.6rem 0;
     cursor: pointer;
     text-decoration: none;
     border-bottom: 1px solid transparent;
@@ -603,7 +603,7 @@ input[type="range"]:focus::-moz-range-thumb {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.4rem 0.6rem;
+    padding: 0.6rem 0.6rem;
     font-family: var(--font-serif);
     font-size: 0.9rem;
     color: var(--color-ink);
@@ -877,7 +877,7 @@ input[type="range"]:focus::-moz-range-thumb {
     color: var(--color-ink-faint);
     background: transparent;
     border: 0;
-    padding: 0;
+    padding: 0.5rem 0;
     cursor: pointer;
     transition: color 0.15s ease;
     margin-top: 0.25rem;
@@ -921,7 +921,7 @@ input[type="range"]:focus::-moz-range-thumb {
     color: var(--color-ink-faint);
     background: transparent;
     border: 0;
-    padding: 0;
+    padding: 0.5rem 0;
     cursor: pointer;
     transition: color 0.15s ease;
     white-space: nowrap;
@@ -1187,7 +1187,7 @@ input[type="range"]:focus::-moz-range-thumb {
     color: var(--color-ink-faint);
     background: transparent;
     border: 0;
-    padding: 0.2rem 0;
+    padding: 0.5rem;
     cursor: pointer;
     transition: color 0.15s ease;
 }
@@ -1306,7 +1306,7 @@ input[type="range"]:focus::-moz-range-thumb {
     color: var(--color-ink-faint);
     background: transparent;
     border: 0;
-    padding: 0;
+    padding: 0.5rem 0;
     cursor: pointer;
     transition: color 0.15s ease;
 }
@@ -1429,6 +1429,10 @@ input[type="range"]:focus::-moz-range-thumb {
         justify-content: space-between;
         align-items: baseline;
         padding: 0.85rem 0 0.9rem 0;
+    }
+
+    .nav-strip__link {
+        padding: 2px 0 3px 0;
     }
 
     .spread {
