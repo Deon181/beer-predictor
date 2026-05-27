@@ -235,6 +235,7 @@ export default function Home() {
             <input
               type="text"
               placeholder="Search by name or brewery..."
+              aria-label="Search beers by name or brewery"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
