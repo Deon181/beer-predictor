@@ -6,6 +6,7 @@ import { Masthead } from "@/components/Masthead";
 import { RadarChart } from "@/components/RadarChart";
 import { useAuth } from "@/contexts/AuthContext";
 import { loadCatalog } from "@/lib/catalog";
+import { recommend } from "@/lib/recommender";
 import { personalizedDefaults } from "@/lib/personalization";
 import type { Beer, TasteProfile, UserRating } from "@/lib/types";
 
@@ -45,6 +46,12 @@ export default function ProfilePage() {
     });
   }, [user, supabase]);
 
+  const catById = useMemo(() => {
+    const m = new Map<string, Beer>();
+    catalog.forEach((b) => m.set(b.beer_id, b));
+    return m;
+  }, [catalog]);
+
   const defaults = useMemo(
     () => personalizedDefaults(ratings, catalog),
     [ratings, catalog]
@@ -60,6 +67,38 @@ export default function ProfilePage() {
       })),
     [defaults]
   );
+
+  const topRated = useMemo(() => {
+    const resolved = ratings
+      .map((r) => ({ ...r, beer: catById.get(r.beer_id) }))
+      .filter((r) => r.beer);
+    resolved.sort((a, b) =>
+      b.rating !== a.rating
+        ? b.rating - a.rating
+        : a.beer!.name.localeCompare(b.beer!.name)
+    );
+    return resolved.slice(0, 5);
+  }, [ratings, catById]);
+
+  const worstRated = useMemo(() => {
+    const resolved = ratings
+      .map((r) => ({ ...r, beer: catById.get(r.beer_id) }))
+      .filter((r) => r.beer);
+    resolved.sort((a, b) =>
+      a.rating !== b.rating
+        ? a.rating - b.rating
+        : a.beer!.name.localeCompare(b.beer!.name)
+    );
+    return resolved.slice(0, 5);
+  }, [ratings, catById]);
+
+  const nextRecommendations = useMemo(() => {
+    if (!defaults || catalog.length === 0) return [];
+    const ratedIds = new Set(ratings.map((r) => r.beer_id));
+    const unrated = catalog.filter((b) => !ratedIds.has(b.beer_id));
+    if (unrated.length === 0) return [];
+    return recommend(unrated, defaults, 5);
+  }, [defaults, catalog, ratings]);
 
   const handleSaveName = useCallback(async () => {
     const name = displayName.trim();
@@ -77,25 +116,6 @@ export default function ProfilePage() {
       .eq("id", user.id);
     setNameStatus(error ? `Save failed: ${error.message}` : "Saved.");
   }, [displayName, user, supabase]);
-
-  const handleRemoveRating = useCallback(
-    async (beerId: string) => {
-      if (!user || !supabase) return;
-      await supabase
-        .from("user_beers")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("beer_id", beerId);
-      setRatings((prev) => prev.filter((r) => r.beer_id !== beerId));
-    },
-    [user, supabase]
-  );
-
-  const catById = useMemo(() => {
-    const m = new Map<string, Beer>();
-    catalog.forEach((b) => m.set(b.beer_id, b));
-    return m;
-  }, [catalog]);
 
   if (authLoading) return null;
 
@@ -119,16 +139,14 @@ export default function ProfilePage() {
     );
   }
 
-  const sortedRatings = [...ratings].sort(
-    (a, b) => (b.rated_at || "").localeCompare(a.rated_at || "")
-  );
+  const pad = (n: number) => String(n).padStart(2, "0");
 
   return (
     <>
       <Masthead />
       <main className="feature">
         <div className="feature-header">
-          <div className="article-no">No. 02 — Reader&apos;s Card</div>
+          <div className="article-no">No. 02 &mdash; Reader&apos;s Card</div>
           <h2>Your profile.</h2>
         </div>
 
@@ -157,7 +175,7 @@ export default function ProfilePage() {
           <div className="chart-caption">
             <span>Fig. III</span>
             <span>
-              Personalized profile
+              Your taste profile
               {!defaults && (
                 <span
                   className="chart-hint"
@@ -184,48 +202,90 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        <section className="ledger-section">
-          <h3>Your ledger</h3>
-          {sortedRatings.length === 0 ? (
-            <div className="lc-empty" style={{ fontStyle: "italic", color: "var(--color-ink-soft)" }}>
-              Rate a few beers to populate your ledger.
+        <section style={{ marginTop: "2rem" }}>
+          <div className="section-label">The Best Pours</div>
+          {ratings.length === 0 ? (
+            <div className="profile-list__empty">
+              Rate a few beers to populate your lists.
             </div>
           ) : (
-            <table className="profile-ledger">
-              <thead>
-                <tr>
-                  <th>Beer</th>
-                  <th>Brewery</th>
-                  <th>Style</th>
-                  <th>Rating</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {sortedRatings.map((r) => {
-                  const beer = catById.get(r.beer_id);
-                  if (!beer) return null;
-                  return (
-                    <tr key={r.beer_id}>
-                      <td>{beer.name}</td>
-                      <td>{beer.brewery}</td>
-                      <td>{beer.style}</td>
-                      <td>★ {r.rating}</td>
-                      <td>
-                        <button
-                          className="linkish"
-                          onClick={() => handleRemoveRating(r.beer_id)}
-                        >
-                          Remove
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <div className="profile-list">
+              {topRated.map((r, i) => (
+                <div key={r.beer_id} className="profile-list__item">
+                  <span className="profile-list__rank">
+                    &#8470; {pad(i + 1)}
+                  </span>
+                  <div className="profile-list__info">
+                    <span className="profile-list__name">
+                      {r.beer!.name}
+                    </span>
+                    <span className="profile-list__brewery">
+                      {r.beer!.brewery}
+                    </span>
+                    <span className="profile-list__meta">
+                      {r.beer!.style} &middot; &#9733; {r.rating}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </section>
+
+        <section style={{ marginTop: "2rem" }}>
+          <div className="section-label">The Drains</div>
+          {ratings.length === 0 ? (
+            <div className="profile-list__empty">
+              Rate a few beers to populate your lists.
+            </div>
+          ) : (
+            <div className="profile-list">
+              {worstRated.map((r, i) => (
+                <div key={r.beer_id} className="profile-list__item">
+                  <span className="profile-list__rank">
+                    &#8470; {pad(i + 1)}
+                  </span>
+                  <div className="profile-list__info">
+                    <span className="profile-list__name">
+                      {r.beer!.name}
+                    </span>
+                    <span className="profile-list__brewery">
+                      {r.beer!.brewery}
+                    </span>
+                    <span className="profile-list__meta">
+                      {r.beer!.style} &middot; &#9733; {r.rating}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {nextRecommendations.length > 0 && (
+          <section style={{ marginTop: "2rem" }}>
+            <div className="section-label">Up Next</div>
+            <div className="profile-list">
+              {nextRecommendations.map((beer, i) => (
+                <div key={beer.beer_id} className="profile-list__item">
+                  <span className="profile-list__rank">
+                    &#8470; {pad(i + 1)}
+                  </span>
+                  <div className="profile-list__info">
+                    <span className="profile-list__name">{beer.name}</span>
+                    <span className="profile-list__brewery">
+                      {beer.brewery}
+                    </span>
+                    <span className="profile-list__meta">
+                      {beer.style} &middot; Match{" "}
+                      {beer.match_score.toFixed(1)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="profile-signout-section">
           <form
