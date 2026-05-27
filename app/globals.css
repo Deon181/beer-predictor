@@ -1000,6 +1000,54 @@ input[type="range"]:focus::-moz-range-thumb {
     color: var(--color-ink-soft);
 }
 
+/* ───── Ledger search ────────────────────────────────────────────── */
+.ledger-search {
+    margin-top: 2rem;
+    margin-bottom: 0.4rem;
+    position: relative;
+}
+.ledger-search input {
+    width: 100%;
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    color: var(--color-ink);
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--color-hairline);
+    padding: 0.35rem 2rem 0.35rem 0;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+.ledger-search input:focus {
+    border-bottom-color: var(--color-copper);
+}
+.ledger-search input::placeholder {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-ink-faint);
+}
+.ledger-search__clear {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-ink-faint);
+    background: transparent;
+    border: 0;
+    padding: 0.2rem 0;
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+.ledger-search__clear:hover {
+    color: var(--color-oxblood);
+}
+
 /* ───── Ledger card view (phone-first) ─────────────────────────────── */
 .ledger-card-view { display: block; }
 .ledger-table-view { display: none; }
