@@ -49,6 +49,7 @@ export default function Home() {
   const [topK, setTopK] = useState(10);
   const [ratings, setRatings] = useState<Map<string, number>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     loadCatalog().then((data) => {
@@ -81,6 +82,18 @@ export default function Home() {
     () => (catalog.length ? recommend(catalog, profile, topK, filters) : []),
     [catalog, profile, topK, filters]
   );
+
+  const displayedResults = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return recommendations;
+    const matched = catalog.filter(
+      (b) =>
+        b.name.toLowerCase().includes(q) ||
+        b.brewery.toLowerCase().includes(q)
+    );
+    if (matched.length === 0) return [];
+    return recommend(matched, profile, matched.length, filters);
+  }, [searchQuery, catalog, profile, filters, recommendations]);
 
   const profileRadarData = useMemo(
     () =>
@@ -218,8 +231,26 @@ export default function Home() {
             </div>
           </div>
 
+          <div className="ledger-search">
+            <input
+              type="text"
+              placeholder="Search by name or brewery..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                className="ledger-search__clear"
+                onClick={() => setSearchQuery("")}
+                aria-label="Clear search"
+              >
+                clear
+              </button>
+            )}
+          </div>
+
           <Ledger
-            recommendations={recommendations}
+            recommendations={displayedResults}
             profile={profile}
             ratings={ratings}
             signedIn={!!user}
