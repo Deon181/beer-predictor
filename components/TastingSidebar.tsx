@@ -1,0 +1,200 @@
+"use client";
+
+import { useState } from "react";
+import type { Filters, TasteProfile } from "@/lib/types";
+
+interface SliderDef {
+  key: keyof TasteProfile;
+  label: string;
+  help: string;
+}
+
+const SLIDERS: SliderDef[] = [
+  { key: "bitterness", label: "Bitter", help: "How sharp / hop-bitter you want it" },
+  { key: "sweetness", label: "Sweet", help: "Caramel, residual sugar, malt sweetness" },
+  { key: "maltiness", label: "Malty", help: "Bread, biscuit, toast, dark crystal" },
+  { key: "hoppiness", label: "Hoppy", help: "Hop aroma + flavour intensity" },
+  { key: "body", label: "Body", help: "Mouthfeel from light/crisp to thick/chewy" },
+  { key: "sourness", label: "Sour", help: "Tart / acidic / Brettanomyces character" },
+  {
+    key: "abv_preference",
+    label: "Strength",
+    help: "Session beer (0) → barleywine (10)",
+  },
+];
+
+interface TastingSidebarProps {
+  profile: TasteProfile;
+  onProfileChange: (profile: TasteProfile) => void;
+  filters: Filters;
+  onFiltersChange: (filters: Filters) => void;
+  topK: number;
+  onTopKChange: (k: number) => void;
+  styles: string[];
+  countries: string[];
+  onReset: () => void;
+}
+
+export function TastingSidebar({
+  profile,
+  onProfileChange,
+  filters,
+  onFiltersChange,
+  topK,
+  onTopKChange,
+  styles,
+  countries,
+  onReset,
+}: TastingSidebarProps) {
+  const [collapsed, setCollapsed] = useState(false);
+
+  function handleSlider(key: keyof TasteProfile, value: number) {
+    onProfileChange({ ...profile, [key]: value });
+  }
+
+  function handleStylesChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const selected = Array.from(e.target.selectedOptions, (o) => o.value);
+    onFiltersChange({ ...filters, styles: selected.length ? selected : undefined });
+  }
+
+  function handleCountriesChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const selected = Array.from(e.target.selectedOptions, (o) => o.value);
+    onFiltersChange({ ...filters, countries: selected.length ? selected : undefined });
+  }
+
+  function handleMinAbv(val: number) {
+    onFiltersChange({
+      ...filters,
+      minAbv: val,
+      maxAbv: filters.maxAbv != null && filters.maxAbv < val ? val : filters.maxAbv,
+    });
+  }
+
+  function handleMaxAbv(val: number) {
+    onFiltersChange({
+      ...filters,
+      maxAbv: val,
+      minAbv: filters.minAbv != null && filters.minAbv > val ? val : filters.minAbv,
+    });
+  }
+
+  return (
+    <>
+      <button
+        className="sidebar-toggle"
+        onClick={() => setCollapsed((c) => !c)}
+        aria-label={collapsed ? "Show taste sliders" : "Hide taste sliders"}
+      >
+        {collapsed ? "Sliders ▶" : "◀ Sliders"}
+      </button>
+
+      <aside className={`tasting-card${collapsed ? " collapsed" : ""}`}>
+        <h3 className="tasting-card__title">Your palate</h3>
+
+        <div className="slider-group">
+          {SLIDERS.map((s) => (
+            <label key={s.key} className="slider-label">
+              <span className="slider-label__name">
+                {s.label}
+                <span className="slider-label__value">{profile[s.key].toFixed(1)}</span>
+              </span>
+              <input
+                type="range"
+                min={0}
+                max={10}
+                step={0.5}
+                value={profile[s.key]}
+                onChange={(e) => handleSlider(s.key, parseFloat(e.target.value))}
+                className="slider"
+                title={s.help}
+              />
+              <span className="slider-label__help">{s.help}</span>
+            </label>
+          ))}
+        </div>
+
+        <hr className="sidebar-rule" />
+
+        <h3 className="tasting-card__title">Filters</h3>
+
+        <label className="filter-label">
+          <span>Styles</span>
+          <select
+            multiple
+            className="filter-select"
+            value={filters.styles ?? []}
+            onChange={handleStylesChange}
+          >
+            {styles.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="filter-label">
+          <span>Countries</span>
+          <select
+            multiple
+            className="filter-select"
+            value={filters.countries ?? []}
+            onChange={handleCountriesChange}
+          >
+            {countries.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="filter-label">
+          <span>ABV range</span>
+          <div className="abv-range">
+            <span className="abv-range__value">{(filters.minAbv ?? 0).toFixed(1)}%</span>
+            <input
+              type="range"
+              min={0}
+              max={20}
+              step={0.5}
+              value={filters.minAbv ?? 0}
+              onChange={(e) => handleMinAbv(parseFloat(e.target.value))}
+              className="slider"
+            />
+            <span className="abv-range__sep">&ndash;</span>
+            <input
+              type="range"
+              min={0}
+              max={20}
+              step={0.5}
+              value={filters.maxAbv ?? 20}
+              onChange={(e) => handleMaxAbv(parseFloat(e.target.value))}
+              className="slider"
+            />
+            <span className="abv-range__value">{(filters.maxAbv ?? 20).toFixed(1)}%</span>
+          </div>
+        </div>
+
+        <label className="filter-label">
+          <span>Results: {topK}</span>
+          <input
+            type="range"
+            min={3}
+            max={20}
+            step={1}
+            value={topK}
+            onChange={(e) => onTopKChange(parseInt(e.target.value, 10))}
+            className="slider"
+          />
+        </label>
+
+        <hr className="sidebar-rule" />
+
+        <button className="ink-btn" onClick={onReset}>
+          Reset palate
+        </button>
+      </aside>
+    </>
+  );
+}

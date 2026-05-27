@@ -1,17 +1,29 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+
+# Production
+build/
+dist/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
 # Python-generated files
 __pycache__/
 *.py[oc]
-build/
-dist/
 wheels/
 *.egg-info
 
 # Virtual environments
 .venv
-
-# Env files
-.env
-.env.local
 
 # Jupyter
 .ipynb_checkpoints/
@@ -23,4 +35,21 @@ wheels/
 # Data (raw kept locally; processed regenerable)
 data/raw/*.json
 data/raw/*.zip
+
+# IDE
 *.DS_Store
+.idea/
+.vscode/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Debug
+npm-debug.log*
+
+# Vercel
+.vercel
+
+# Testing
+coverage/
