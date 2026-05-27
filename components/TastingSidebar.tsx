@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Filters, TasteProfile } from "@/lib/types";
+import { SearchableMultiSelect } from "@/components/SearchableMultiSelect";
 
 interface SliderDef {
   key: keyof TasteProfile;
@@ -52,13 +53,11 @@ export function TastingSidebar({
     onProfileChange({ ...profile, [key]: value });
   }
 
-  function handleStylesChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const selected = Array.from(e.target.selectedOptions, (o) => o.value);
+  function handleStylesChange(selected: string[]) {
     onFiltersChange({ ...filters, styles: selected.length ? selected : undefined });
   }
 
-  function handleCountriesChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const selected = Array.from(e.target.selectedOptions, (o) => o.value);
+  function handleCountriesChange(selected: string[]) {
     onFiltersChange({ ...filters, countries: selected.length ? selected : undefined });
   }
 
@@ -117,37 +116,27 @@ export function TastingSidebar({
 
         <h3 className="tasting-card__title">Filters</h3>
 
-        <label className="filter-label">
+        <div className="filter-label">
           <span>Styles</span>
-          <select
-            multiple
-            className="filter-select"
-            value={filters.styles ?? []}
+          <SearchableMultiSelect
+            options={styles}
+            selected={filters.styles ?? []}
             onChange={handleStylesChange}
-          >
-            {styles.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-        </label>
+            label="Styles"
+            placeholder="All styles"
+          />
+        </div>
 
-        <label className="filter-label">
+        <div className="filter-label">
           <span>Countries</span>
-          <select
-            multiple
-            className="filter-select"
-            value={filters.countries ?? []}
+          <SearchableMultiSelect
+            options={countries}
+            selected={filters.countries ?? []}
             onChange={handleCountriesChange}
-          >
-            {countries.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </label>
+            label="Countries"
+            placeholder="All countries"
+          />
+        </div>
 
         <div className="filter-label">
           <span>ABV range</span>
