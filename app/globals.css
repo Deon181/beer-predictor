@@ -508,29 +508,120 @@ input[type="range"]:focus::-moz-range-thumb {
     font-size: 0.8rem;
 }
 
-/* ───── Multi-select dropdown ─────────────────────────────────────── */
-.filter-select {
+/* ───── Searchable multi-select ──────────────────────────────────── */
+.sms {
+    position: relative;
+}
+.sms__trigger {
     width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     font-family: var(--font-serif);
     font-size: 0.95rem;
     color: var(--color-ink);
     background: transparent;
     border: 0;
     border-bottom: 1px solid var(--color-ink-faint);
-    border-radius: 0;
     padding: 0.3rem 0;
-    outline: none;
+    cursor: pointer;
+    text-align: left;
     transition: border-color 0.2s ease;
     min-height: 2.2rem;
 }
-.filter-select:focus {
+.sms__trigger--open,
+.sms__trigger:focus {
     border-bottom-color: var(--color-copper);
 }
-.filter-select option {
-    font-family: var(--font-serif);
+.sms__trigger:focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+}
+.sms__trigger-text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.sms__trigger-text--placeholder {
+    color: var(--color-ink-faint);
+    font-style: italic;
+}
+.sms__arrow {
+    color: var(--color-ink-faint);
+    font-size: 0.7rem;
+    margin-left: 0.4rem;
+    flex-shrink: 0;
+}
+.sms__dropdown {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    margin-top: 2px;
     background: var(--color-paper);
+    border: 1px solid var(--color-hairline);
+    border-top: 2px solid var(--color-copper);
+    box-shadow: 0 8px 24px rgba(26,20,16,0.10),
+                0 2px 6px rgba(26,20,16,0.06);
+    z-index: 20;
+}
+.sms__search {
+    width: 100%;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
     color: var(--color-ink);
-    padding: 0.3rem;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--color-hairline);
+    padding: 0.5rem 0.6rem;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+.sms__search:focus {
+    border-bottom-color: var(--color-copper);
+}
+.sms__search::placeholder {
+    color: var(--color-ink-faint);
+    text-transform: uppercase;
+}
+.sms__list {
+    max-height: 180px;
+    overflow-y: auto;
+}
+.sms__list::-webkit-scrollbar { width: 6px; }
+.sms__list::-webkit-scrollbar-thumb {
+    background: var(--color-hairline);
+    border-radius: 3px;
+}
+.sms__option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    font-family: var(--font-serif);
+    font-size: 0.9rem;
+    color: var(--color-ink);
+    cursor: pointer;
+    transition: background 0.1s ease;
+}
+.sms__option:hover {
+    background: var(--color-copper-soft);
+}
+.sms__option input[type="checkbox"] {
+    accent-color: var(--color-copper);
+    cursor: pointer;
+}
+.sms__empty {
+    padding: 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--color-ink-faint);
+    font-style: italic;
+    text-transform: none;
 }
 
 /* ───── Sliders — copper coin on ink rule (legacy rc-slider) ─────── */
