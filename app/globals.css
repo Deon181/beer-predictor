@@ -1047,6 +1047,10 @@ input[type="range"]:focus::-moz-range-thumb {
 .ledger-search__clear:hover {
     color: var(--color-oxblood);
 }
+.ledger-search__clear:focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+}
 
 /* ───── Ledger card view (phone-first) ─────────────────────────────── */
 .ledger-card-view { display: block; }
