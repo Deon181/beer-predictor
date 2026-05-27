@@ -231,31 +231,14 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="ledger-search">
-            <input
-              type="text"
-              placeholder="Search by name or brewery..."
-              aria-label="Search beers by name or brewery"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            {searchQuery && (
-              <button
-                className="ledger-search__clear"
-                onClick={() => setSearchQuery("")}
-                aria-label="Clear search"
-              >
-                clear
-              </button>
-            )}
-          </div>
-
           <Ledger
             recommendations={displayedResults}
             profile={profile}
             ratings={ratings}
             signedIn={!!user}
             onRate={handleRate}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
           />
         </main>
       </div>

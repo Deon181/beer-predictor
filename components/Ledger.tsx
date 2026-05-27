@@ -10,6 +10,8 @@ interface LedgerProps {
   ratings: Map<string, number>;
   signedIn: boolean;
   onRate: (beerId: string, rating: number | null) => void;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
 }
 
 export function Ledger({
@@ -18,12 +20,32 @@ export function Ledger({
   ratings,
   signedIn,
   onRate,
+  searchQuery,
+  onSearchChange,
 }: LedgerProps) {
   return (
     <section className="ledger-section">
       <div className="ledger-head">
         <h3>The Ledger</h3>
         <span className="legend">Sorted &middot; highest match first</span>
+      </div>
+      <div className="ledger-search">
+        <input
+          type="text"
+          placeholder="Search by name or brewery..."
+          aria-label="Search beers by name or brewery"
+          value={searchQuery}
+          onChange={(e) => onSearchChange(e.target.value)}
+        />
+        {searchQuery && (
+          <button
+            className="ledger-search__clear"
+            onClick={() => onSearchChange("")}
+            aria-label="Clear search"
+          >
+            clear
+          </button>
+        )}
       </div>
       <div className="ledger-card-view">
         {recommendations.map((beer, i) => (

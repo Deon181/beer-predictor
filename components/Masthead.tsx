@@ -30,7 +30,7 @@ export function Masthead() {
       </div>
       <h1>
         <Link href="/" className="masthead-home">
-          The Beer <span className="amp">&amp;</span> Predictor
+          The Beer Predictor
         </Link>
       </h1>
       <p className="kicker">

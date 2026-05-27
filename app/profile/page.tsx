@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Masthead } from "@/components/Masthead";
 import { RadarChart } from "@/components/RadarChart";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,10 +22,12 @@ const RADAR_AXES = [
 ];
 
 export default function ProfilePage() {
+  const router = useRouter();
   const { user, supabase, signOut, loading: authLoading } = useAuth();
   const [catalog, setCatalog] = useState<Beer[]>([]);
   const [displayName, setDisplayName] = useState("");
   const [nameStatus, setNameStatus] = useState("");
+  const [editing, setEditing] = useState(false);
   const [ratings, setRatings] = useState<UserRating[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -150,24 +153,55 @@ export default function ProfilePage() {
           <h2>Your profile.</h2>
         </div>
 
-        <section className="profile-name-section">
-          <div className="prof-row">
-            <span className="prof-label">Display name</span>
-            <div className="prof-field">
-              <div className="prof-input">
-                <input
-                  type="text"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  maxLength={50}
-                  placeholder="Enter a display name"
-                />
-              </div>
-              <button className="prof-save" onClick={handleSaveName}>
-                Save
-              </button>
-            </div>
-            <span className="prof-status">{nameStatus}</span>
+        <section className="profile-card">
+          <div className="profile-card__monogram">
+            {(displayName || "?")[0].toUpperCase()}
+          </div>
+          <div className="profile-card__body">
+            {!editing ? (
+              <>
+                <h3 className="profile-card__name">
+                  {displayName || "Anonymous"}
+                </h3>
+                <button
+                  className="profile-card__edit-toggle"
+                  onClick={() => setEditing(true)}
+                >
+                  Edit name
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="profile-card__edit-row">
+                  <input
+                    type="text"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    maxLength={50}
+                    placeholder="Enter a display name"
+                    autoFocus
+                  />
+                  <button
+                    className="profile-card__save"
+                    onClick={async () => {
+                      await handleSaveName();
+                      setEditing(false);
+                    }}
+                  >
+                    Save
+                  </button>
+                  <button
+                    className="profile-card__edit-toggle"
+                    onClick={() => setEditing(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+                {nameStatus && (
+                  <div className="profile-card__status">{nameStatus}</div>
+                )}
+              </>
+            )}
           </div>
         </section>
 
@@ -291,7 +325,7 @@ export default function ProfilePage() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              signOut();
+              signOut().then(() => router.push("/"));
             }}
           >
             <button type="submit" className="ink-btn ink-btn--secondary">
