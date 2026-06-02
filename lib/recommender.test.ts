@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { recommend } from "./recommender";
+import { recommend, explain } from "./recommender";
 import type { Beer, TasteProfile } from "./types";
 import type { AxisKey } from "./axes";
 
@@ -48,5 +48,20 @@ describe("recommend with active axes", () => {
     const beer = makeBeer({ bitterness: 8, sweetness: 2, sourness: 10 });
     const [top] = recommend([beer], profile, 1);
     expect(top.distance).toBeGreaterThan(0);
+  });
+});
+
+describe("explain with active axes", () => {
+  it("never names a disabled axis", () => {
+    const beer = makeBeer({ bitterness: 8, sourness: 10 });
+    const text = explain(beer, profile, ["bitterness"]);
+    expect(text.toLowerCase()).not.toContain("sour");
+    expect(text.toLowerCase()).not.toContain("abv");
+  });
+
+  it("can cite an axis when it is active", () => {
+    const beer = makeBeer({ bitterness: 8, sourness: 10 });
+    const text = explain(beer, profile, ["bitterness", "sourness"]);
+    expect(text.toLowerCase()).toContain("sour");
   });
 });
