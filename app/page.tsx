@@ -73,7 +73,10 @@ export default function Home() {
           if (defaults) setProfile(defaults);
         }
       });
+  }, [user, supabase, catalog]);
 
+  useEffect(() => {
+    if (!user || !supabase) return;
     supabase
       .from("profiles")
       .select("active_axes")
@@ -82,7 +85,7 @@ export default function Home() {
       .then(({ data }) => {
         if (data) setActiveAxes(normalizeActiveAxes(data.active_axes));
       });
-  }, [user, supabase, catalog]);
+  }, [user, supabase]);
 
   const styles = useMemo(() => getStyles(catalog), [catalog]);
   const countries = useMemo(() => getCountries(catalog), [catalog]);
