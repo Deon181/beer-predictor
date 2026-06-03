@@ -7,8 +7,9 @@ import { RadarChart } from "@/components/RadarChart";
 import { Ledger } from "@/components/Ledger";
 import { useAuth } from "@/contexts/AuthContext";
 import { loadCatalog, getStyles, getCountries } from "@/lib/catalog";
-import { recommend, explain, TASTE_COLS } from "@/lib/recommender";
+import { recommend } from "@/lib/recommender";
 import { personalizedDefaults } from "@/lib/personalization";
+import { ALL_AXIS_KEYS, normalizeActiveAxes, type AxisKey } from "@/lib/axes";
 import type { Beer, Filters, Recommendation, TasteProfile, UserRating } from "@/lib/types";
 
 const DEFAULT_PROFILE: TasteProfile = {
@@ -50,6 +51,7 @@ export default function Home() {
   const [ratings, setRatings] = useState<Map<string, number>>(new Map());
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeAxes, setActiveAxes] = useState<AxisKey[]>(ALL_AXIS_KEYS);
 
   useEffect(() => {
     loadCatalog().then((data) => {
@@ -60,27 +62,37 @@ export default function Home() {
 
   useEffect(() => {
     if (!user || !supabase) return;
+
     supabase
       .from("user_beers")
       .select("beer_id, rating")
       .then(({ data }) => {
         if (data) {
           setRatings(new Map(data.map((r: UserRating) => [r.beer_id, r.rating])));
-          const defaults = personalizedDefaults(
-            data as UserRating[],
-            catalog
-          );
+          const defaults = personalizedDefaults(data as UserRating[], catalog);
           if (defaults) setProfile(defaults);
         }
       });
   }, [user, supabase, catalog]);
 
+  useEffect(() => {
+    if (!user || !supabase) return;
+    supabase
+      .from("profiles")
+      .select("active_axes")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data) setActiveAxes(normalizeActiveAxes(data.active_axes));
+      });
+  }, [user, supabase]);
+
   const styles = useMemo(() => getStyles(catalog), [catalog]);
   const countries = useMemo(() => getCountries(catalog), [catalog]);
 
   const recommendations = useMemo(
-    () => (catalog.length ? recommend(catalog, profile, topK, filters) : []),
-    [catalog, profile, topK, filters]
+    () => (catalog.length ? recommend(catalog, profile, topK, filters, activeAxes) : []),
+    [catalog, profile, topK, filters, activeAxes]
   );
 
   const displayedResults = useMemo(() => {
@@ -92,21 +104,21 @@ export default function Home() {
         b.brewery.toLowerCase().includes(q)
     );
     if (matched.length === 0) return [];
-    return recommend(matched, profile, matched.length, filters);
-  }, [searchQuery, catalog, profile, filters, recommendations]);
+    return recommend(matched, profile, matched.length, filters, activeAxes);
+  }, [searchQuery, catalog, profile, filters, recommendations, activeAxes]);
 
   const profileRadarData = useMemo(
     () =>
-      RADAR_AXES.map((a) => ({
+      RADAR_AXES.filter((a) => activeAxes.includes(a.key as AxisKey)).map((a) => ({
         axis: a.label,
         You: profile[a.key as keyof TasteProfile],
       })),
-    [profile]
+    [profile, activeAxes]
   );
 
   const comparisonRadarData = useMemo(() => {
     const top3 = recommendations.slice(0, 3);
-    return RADAR_AXES.map((a) => {
+    return RADAR_AXES.filter((a) => activeAxes.includes(a.key as AxisKey)).map((a) => {
       const col = TASTE_COL_FOR_AXIS[a.key];
       const point: Record<string, number | string> = {
         axis: a.label,
@@ -117,7 +129,7 @@ export default function Home() {
       });
       return point;
     });
-  }, [profile, recommendations]);
+  }, [profile, recommendations, activeAxes]);
 
   const comparisonTraces = useMemo(() => {
     const colors = ["#B0651E", "#6B1F1F", "#4A382A"];
@@ -184,6 +196,7 @@ export default function Home() {
           styles={styles}
           countries={countries}
           onReset={handleReset}
+          activeAxes={activeAxes}
         />
         <main className="feature">
           <div className="feature-header">
@@ -239,6 +252,7 @@ export default function Home() {
             onRate={handleRate}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
+            activeAxes={activeAxes}
           />
         </main>
       </div>

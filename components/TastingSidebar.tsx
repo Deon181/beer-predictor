@@ -2,27 +2,8 @@
 
 import { useState } from "react";
 import type { Filters, TasteProfile } from "@/lib/types";
+import { AXES, type AxisKey } from "@/lib/axes";
 import { SearchableMultiSelect } from "@/components/SearchableMultiSelect";
-
-interface SliderDef {
-  key: keyof TasteProfile;
-  label: string;
-  help: string;
-}
-
-const SLIDERS: SliderDef[] = [
-  { key: "bitterness", label: "Bitter", help: "How sharp / hop-bitter you want it" },
-  { key: "sweetness", label: "Sweet", help: "Caramel, residual sugar, malt sweetness" },
-  { key: "maltiness", label: "Malty", help: "Bread, biscuit, toast, dark crystal" },
-  { key: "hoppiness", label: "Hoppy", help: "Hop aroma + flavour intensity" },
-  { key: "body", label: "Body", help: "Mouthfeel from light/crisp to thick/chewy" },
-  { key: "sourness", label: "Sour", help: "Tart / acidic / Brettanomyces character" },
-  {
-    key: "abv_preference",
-    label: "Strength",
-    help: "Session beer (0) → barleywine (10)",
-  },
-];
 
 interface TastingSidebarProps {
   profile: TasteProfile;
@@ -34,6 +15,7 @@ interface TastingSidebarProps {
   styles: string[];
   countries: string[];
   onReset: () => void;
+  activeAxes: AxisKey[];
 }
 
 export function TastingSidebar({
@@ -46,6 +28,7 @@ export function TastingSidebar({
   styles,
   countries,
   onReset,
+  activeAxes,
 }: TastingSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
 
@@ -91,11 +74,13 @@ export function TastingSidebar({
         <h3 className="tasting-card__title">Your palate</h3>
 
         <div className="slider-group">
-          {SLIDERS.map((s) => (
+          {AXES.filter((a) => activeAxes.includes(a.key)).map((s) => (
             <label key={s.key} className="slider-label">
               <span className="slider-label__name">
                 {s.label}
-                <span className="slider-label__value">{profile[s.key].toFixed(1)}</span>
+                <span className="slider-label__value">
+                  {profile[s.key].toFixed(1)}
+                </span>
               </span>
               <input
                 type="range"

@@ -1,36 +1,13 @@
 import type { Beer, Filters, Recommendation, TasteProfile } from "./types";
+import { AXES, normalizeActiveAxes, type AxisKey } from "./axes";
 
-export const TASTE_COLS = [
-  "bitterness",
-  "sweetness",
-  "maltiness",
-  "hoppiness",
-  "body",
-  "sourness",
-  "abv_normalized",
-] as const;
+/** Beer columns used for the taste vector, in canonical order. */
+export const TASTE_COLS = AXES.map((a) => a.column) as Array<
+  "bitterness" | "sweetness" | "maltiness" | "hoppiness" | "body" | "sourness" | "abv_normalized"
+>;
 
-type TasteCol = (typeof TASTE_COLS)[number];
-
-const SLIDER_TO_COLUMN: Record<string, TasteCol> = {
-  bitterness: "bitterness",
-  sweetness: "sweetness",
-  maltiness: "maltiness",
-  hoppiness: "hoppiness",
-  body: "body",
-  sourness: "sourness",
-  abv_preference: "abv_normalized",
-};
-
-function resolveProfile(profile: TasteProfile): number[] {
-  return TASTE_COLS.map((col) => {
-    for (const [key, mapped] of Object.entries(SLIDER_TO_COLUMN)) {
-      if (mapped === col && key in profile) {
-        return Math.max(0, Math.min(10, profile[key as keyof TasteProfile]));
-      }
-    }
-    return 5.0;
-  });
+function clamp(v: number): number {
+  return Math.max(0, Math.min(10, v));
 }
 
 function applyFilters(beers: Beer[], filters?: Filters): Beer[] {
@@ -49,16 +26,19 @@ export function recommend(
   catalog: Beer[],
   profile: TasteProfile,
   topK: number = 10,
-  filters?: Filters
+  filters?: Filters,
+  activeAxes?: AxisKey[]
 ): Recommendation[] {
   const filtered = applyFilters(catalog, filters);
   if (filtered.length === 0) return [];
 
-  const vec = resolveProfile(profile);
+  const active = normalizeActiveAxes(activeAxes ?? null);
+  const axisDefs = AXES.filter((a) => active.includes(a.key));
+
   const scored = filtered.map((beer) => {
     let sumSq = 0;
-    for (let i = 0; i < TASTE_COLS.length; i++) {
-      const diff = beer[TASTE_COLS[i]] - vec[i];
+    for (const a of axisDefs) {
+      const diff = (beer[a.column] as number) - clamp(profile[a.key]);
       sumSq += diff * diff;
     }
     const distance = Math.sqrt(sumSq);
@@ -70,7 +50,7 @@ export function recommend(
   return scored.slice(0, Math.max(1, Math.min(topK, scored.length)));
 }
 
-const LABELS: Record<TasteCol, [string, string]> = {
+const LABELS: Record<string, [string, string]> = {
   bitterness: ["more bitter than", "less bitter than"],
   sweetness: ["sweeter than", "drier than"],
   maltiness: ["more malt-forward than", "less malty than"],
@@ -84,50 +64,54 @@ function readable(col: string): string {
   return col === "abv_normalized" ? "ABV" : col;
 }
 
-export function explain(beer: Beer, profile: TasteProfile): string {
-  const vec = resolveProfile(profile);
-  const beerVec = TASTE_COLS.map((c) => beer[c]);
-  const diffs = beerVec.map((v, i) => v - vec[i]);
-  const absDiffs = diffs.map(Math.abs);
-  const intensity = vec.map((v) => Math.abs(v - 5.0));
+export function explain(
+  beer: Beer,
+  profile: TasteProfile,
+  activeAxes?: AxisKey[]
+): string {
+  const active = normalizeActiveAxes(activeAxes ?? null);
+  const axisDefs = AXES.filter((a) => active.includes(a.key));
 
-  const ranked = intensity
-    .map((v, i) => ({ v, i }))
-    .sort((a, b) => b.v - a.v)
+  const rows = axisDefs.map((a) => {
+    const target = clamp(profile[a.key]);
+    const beerVal = beer[a.column] as number;
+    const diff = beerVal - target;
+    return {
+      col: a.column as string,
+      diff,
+      absDiff: Math.abs(diff),
+      intensity: Math.abs(target - 5.0),
+    };
+  });
+
+  const ranked = rows
+    .map((r, i) => ({ r, i }))
+    .sort((a, b) => b.r.intensity - a.r.intensity)
     .map((x) => x.i);
 
   const matches: string[] = [];
   const misses: [string, number][] = [];
 
   for (const idx of ranked) {
-    if (intensity[idx] < 1.5) break;
-    const col = TASTE_COLS[idx];
-    if (absDiffs[idx] <= 1.5) {
-      matches.push(col);
-    } else {
-      misses.push([col, diffs[idx]]);
-    }
+    if (rows[idx].intensity < 1.5) break;
+    if (rows[idx].absDiff <= 1.5) matches.push(rows[idx].col);
+    else misses.push([rows[idx].col, rows[idx].diff]);
   }
 
   const parts: string[] = [];
   if (matches.length > 0) {
-    const nice = matches
-      .slice(0, 2)
-      .map(readable)
-      .join(", ");
-    parts.push(`Strong match on ${nice}`);
+    parts.push(`Strong match on ${matches.slice(0, 2).map(readable).join(", ")}`);
   } else {
-    const overall = absDiffs
-      .map((v, i) => ({ v, i }))
-      .sort((a, b) => a.v - b.v)
+    const overall = [...rows]
+      .sort((a, b) => a.absDiff - b.absDiff)
       .slice(0, 2)
-      .map((x) => readable(TASTE_COLS[x.i]));
+      .map((r) => readable(r.col));
     parts.push(`Balanced match across ${overall.join(", ")}`);
   }
 
   if (misses.length > 0) {
     const [col, diff] = misses[0];
-    const [pos, neg] = LABELS[col as TasteCol];
+    const [pos, neg] = LABELS[col];
     const descriptor = diff > 0 ? pos : neg;
     parts.push(
       `slightly ${descriptor} you asked (${readable(col)} off by ${Math.abs(diff).toFixed(1)})`

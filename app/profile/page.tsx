@@ -10,6 +10,7 @@ import { loadCatalog } from "@/lib/catalog";
 import { recommend } from "@/lib/recommender";
 import { personalizedDefaults } from "@/lib/personalization";
 import type { Beer, TasteProfile, UserRating } from "@/lib/types";
+import { AXES, ALL_AXIS_KEYS, normalizeActiveAxes, axesToPersist, type AxisKey } from "@/lib/axes";
 
 const RADAR_AXES = [
   { key: "bitterness", label: "Bitter" },
@@ -30,6 +31,8 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [ratings, setRatings] = useState<UserRating[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeAxes, setActiveAxes] = useState<AxisKey[]>(ALL_AXIS_KEYS);
+  const [axesStatus, setAxesStatus] = useState("");
 
   useEffect(() => {
     loadCatalog().then(setCatalog);
@@ -40,10 +43,13 @@ export default function ProfilePage() {
     const uid = user.id;
 
     Promise.all([
-      supabase.from("profiles").select("display_name").eq("id", uid).single(),
+      supabase.from("profiles").select("display_name, active_axes").eq("id", uid).single(),
       supabase.from("user_beers").select("beer_id, rating, rated_at"),
     ]).then(([profRes, ratingsRes]) => {
-      if (profRes.data) setDisplayName(profRes.data.display_name || "");
+      if (profRes.data) {
+        setDisplayName(profRes.data.display_name || "");
+        setActiveAxes(normalizeActiveAxes(profRes.data.active_axes));
+      }
       if (ratingsRes.data) setRatings(ratingsRes.data as UserRating[]);
       setLoading(false);
     });
@@ -119,6 +125,29 @@ export default function ProfilePage() {
       .eq("id", user.id);
     setNameStatus(error ? `Save failed: ${error.message}` : "Saved.");
   }, [displayName, user, supabase]);
+
+  const toggleAxis = useCallback((key: AxisKey) => {
+    setActiveAxes((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+    setAxesStatus("");
+  }, []);
+
+  const handleSaveAxes = useCallback(async () => {
+    if (activeAxes.length < 1) {
+      setAxesStatus("Keep at least one attribute.");
+      return;
+    }
+    if (!user || !supabase) {
+      setAxesStatus("Account required.");
+      return;
+    }
+    const { error } = await supabase
+      .from("profiles")
+      .update({ active_axes: axesToPersist(activeAxes) })
+      .eq("id", user.id);
+    setAxesStatus(error ? `Save failed: ${error.message}` : "Saved.");
+  }, [activeAxes, user, supabase]);
 
   if (authLoading) return null;
 
@@ -233,6 +262,44 @@ export default function ProfilePage() {
                 },
               ]}
             />
+          </div>
+        </section>
+
+        <section className="chart-card" style={{ marginTop: "1.5rem" }}>
+          <div className="chart-caption">
+            <span>Fig. IV</span>
+            <span>What you measure</span>
+          </div>
+          <p className="axes-intro">
+            Choose which attributes shape your matches. Anything you switch off
+            is ignored entirely — in the ledger, the sliders, and the charts.
+          </p>
+          <div className="axes-grid">
+            {AXES.map((a) => {
+              const on = activeAxes.includes(a.key);
+              return (
+                <label
+                  key={a.key}
+                  className={`axis-toggle${on ? " axis-toggle--on" : ""}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={on}
+                    onChange={() => toggleAxis(a.key)}
+                  />
+                  <span className="axis-toggle__label">{a.label}</span>
+                  <span className="axis-toggle__help">{a.help}</span>
+                </label>
+              );
+            })}
+          </div>
+          <div className="axes-actions">
+            <button className="ink-btn" onClick={handleSaveAxes}>
+              Save attributes
+            </button>
+            {axesStatus && (
+              <span className="profile-card__status">{axesStatus}</span>
+            )}
           </div>
         </section>
 

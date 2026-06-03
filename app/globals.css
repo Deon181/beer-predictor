@@ -1504,3 +1504,65 @@ input[type="range"]:focus::-moz-range-thumb {
         gap: 0;
     }
 }
+
+/* ── Customizable attributes (profile) ───────────────────────── */
+.axes-intro {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--color-copper);
+  margin: 0.75rem 0 1rem;
+  line-height: 1.5;
+}
+
+.axes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.5rem;
+}
+
+.axis-toggle {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 0.6rem;
+  align-items: center;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgba(26, 20, 16, 0.18);
+  border-radius: 2px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.15s ease, border-color 0.15s ease;
+}
+
+.axis-toggle--on {
+  opacity: 1;
+  border-color: var(--color-copper);
+}
+
+.axis-toggle input {
+  grid-row: 1 / 3;
+  width: 1.05rem;
+  height: 1.05rem;
+  accent-color: var(--color-copper);
+}
+
+.axis-toggle__label {
+  font-family: var(--font-serif, serif);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.axis-toggle__help {
+  grid-column: 2;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--color-copper);
+  line-height: 1.35;
+}
+
+.axes-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}

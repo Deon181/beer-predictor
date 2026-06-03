@@ -3,6 +3,7 @@
 import type { Recommendation, TasteProfile } from "@/lib/types";
 import { explain } from "@/lib/recommender";
 import { LedgerCard } from "@/components/LedgerCard";
+import type { AxisKey } from "@/lib/axes";
 
 interface LedgerProps {
   recommendations: Recommendation[];
@@ -12,6 +13,7 @@ interface LedgerProps {
   onRate: (beerId: string, rating: number | null) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  activeAxes: AxisKey[];
 }
 
 export function Ledger({
@@ -22,6 +24,7 @@ export function Ledger({
   onRate,
   searchQuery,
   onSearchChange,
+  activeAxes,
 }: LedgerProps) {
   return (
     <section className="ledger-section">
@@ -53,7 +56,7 @@ export function Ledger({
             key={beer.beer_id}
             rank={i + 1}
             beer={beer}
-            explanation={explain(beer, profile)}
+            explanation={explain(beer, profile, activeAxes)}
             rating={ratings.get(beer.beer_id) ?? null}
             signedIn={signedIn}
             onRate={(rating) => onRate(beer.beer_id, rating)}
