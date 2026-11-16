@@ -43,8 +43,8 @@ export default function ProfilePage() {
     const uid = user.id;
 
     Promise.all([
-      supabase.from("profiles").select("display_name, active_axes").eq("id", uid).single(),
-      supabase.from("user_beers").select("beer_id, rating, rated_at"),
+      supabase.from("beer_profiles").select("display_name, active_axes").eq("id", uid).single(),
+      supabase.from("beer_user_beers").select("beer_id, rating, rated_at"),
     ]).then(([profRes, ratingsRes]) => {
       if (profRes.data) {
         setDisplayName(profRes.data.display_name || "");
@@ -120,7 +120,7 @@ export default function ProfilePage() {
       return;
     }
     const { error } = await supabase
-      .from("profiles")
+      .from("beer_profiles")
       .update({ display_name: name })
       .eq("id", user.id);
     setNameStatus(error ? `Save failed: ${error.message}` : "Saved.");
@@ -143,7 +143,7 @@ export default function ProfilePage() {
       return;
     }
     const { error } = await supabase
-      .from("profiles")
+      .from("beer_profiles")
       .update({ active_axes: axesToPersist(activeAxes) })
       .eq("id", user.id);
     setAxesStatus(error ? `Save failed: ${error.message}` : "Saved.");

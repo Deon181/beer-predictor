@@ -64,7 +64,7 @@ export default function Home() {
     if (!user || !supabase) return;
 
     supabase
-      .from("user_beers")
+      .from("beer_user_beers")
       .select("beer_id, rating")
       .then(({ data }) => {
         if (data) {
@@ -78,7 +78,7 @@ export default function Home() {
   useEffect(() => {
     if (!user || !supabase) return;
     supabase
-      .from("profiles")
+      .from("beer_profiles")
       .select("active_axes")
       .eq("id", user.id)
       .single()
@@ -150,7 +150,7 @@ export default function Home() {
       const uid = user.id;
       if (rating === null) {
         await supabase
-          .from("user_beers")
+          .from("beer_user_beers")
           .delete()
           .eq("user_id", uid)
           .eq("beer_id", beerId);
@@ -160,7 +160,7 @@ export default function Home() {
           return next;
         });
       } else {
-        await supabase.from("user_beers").upsert(
+        await supabase.from("beer_user_beers").upsert(
           { user_id: uid, beer_id: beerId, rating },
           { onConflict: "user_id,beer_id" }
         );
